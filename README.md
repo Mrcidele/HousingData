@@ -18,3 +18,5 @@ python housing_inferencia.py
 ```
 
 Na inferência, digite os valores de cada atributo ou pressione Enter para usar o exemplo.
+
+> **Observação:** a inferência carrega os arquivos `.model` gerados pelo treinamento. Eles já estão no repositório, então `housing_inferencia.py` pode ser executado direto. Ao rodar `housing_clusterizador.py` novamente, os modelos são regerados.
