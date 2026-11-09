@@ -5,6 +5,7 @@ matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 from sklearn.preprocessing import MinMaxScaler
 from sklearn.cluster import KMeans #Algoritmo de clusterização
+from scipy.spatial.distance import cdist #Cálculo das distâncias até os centroides
 from pickle import dump
 
 #1 CARREGAR OS DADOS
@@ -14,6 +15,8 @@ dados = pd.read_csv('HousingData.csv', sep=',')
 #CHAS: 1 se o terreno margeia o rio Charles, 0 caso contrário
 #RAD: índice de acessibilidade a rodovias radiais (código, não é uma medida)
 colunas_categoricas = ['CHAS', 'RAD']
+#MEDV (valor mediano do imóvel) é mantido como atributo: o preço é uma característica
+#relevante da residência e ajuda a interpretar os grupos (ex.: grupo de imóveis caros/baratos)
 colunas_numericas = dados.drop(columns=colunas_categoricas).columns
 
 #2 TRATAR OS DADOS FALTANTES (NA)
@@ -45,12 +48,14 @@ dump(list(dados_categoricos_normalizados.columns), open('colunas_categoricas_hou
 dados_normalizados = dados_numericos_normalizados.join(dados_categoricos_normalizados)
 
 #4 DETERMINAR O NÚMERO ÓTIMO DE GRUPOS (MÉTODO DO COTOVELO)
-#4.1 Calcular a distorção (inércia) para cada quantidade de clusters
+#4.1 Calcular a distorção para cada quantidade de clusters
+#Distorção = média das distâncias euclidianas de cada residência até o centroide mais próximo
 distorcoes = []
 K = range(1, 11)
 for k in K:
     kmeans = KMeans(n_clusters=k, random_state=42, n_init=10).fit(dados_normalizados)
-    distorcoes.append(kmeans.inertia_)
+    distancias_centroides = cdist(dados_normalizados, kmeans.cluster_centers_, 'euclidean')
+    distorcoes.append(sum(np.min(distancias_centroides, axis=1)) / dados_normalizados.shape[0])
 
 #4.2 Calcular a distância de cada ponto da curva até a reta que liga o primeiro e o último ponto
 #O ponto mais distante da reta é o "cotovelo"
@@ -70,7 +75,7 @@ print('Número ótimo de clusters:', numero_otimo_clusters)
 plt.plot(K, distorcoes, 'bx-')
 plt.plot(numero_otimo_clusters, distorcoes[numero_otimo_clusters - 1], 'ro')
 plt.xlabel('Número de clusters (k)')
-plt.ylabel('Distorção (inércia)')
+plt.ylabel('Distorção (distância média ao centroide)')
 plt.title('Método do cotovelo')
 plt.savefig('cotovelo.png')
 

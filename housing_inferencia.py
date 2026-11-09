@@ -5,12 +5,20 @@ from pickle import load
 
 colunas_categoricas = ['CHAS', 'RAD']
 
-#1 DADOS DA NOVA RESIDÊNCIA
-nova_residencia = {
+#1 RECEBER OS DADOS DA NOVA RESIDÊNCIA
+#Valores de exemplo usados quando o usuário apenas pressiona Enter
+exemplo = {
     'CRIM': 0.05, 'ZN': 20, 'INDUS': 4.5, 'CHAS': 0, 'NOX': 0.45,
     'RM': 6.8, 'AGE': 40, 'DIS': 5.5, 'RAD': 4, 'TAX': 300,
     'PTRATIO': 17.0, 'B': 390, 'LSTAT': 6.0, 'MEDV': 28.0
 }
+print('Informe os dados da nova residência (Enter usa o valor de exemplo):')
+nova_residencia = {}
+for atributo, valor_padrao in exemplo.items():
+    valor = input(f'{atributo} [{valor_padrao}]: ').strip().replace(',', '.')
+    nova_residencia[atributo] = float(valor) if valor else valor_padrao
+for coluna in colunas_categoricas:
+    nova_residencia[coluna] = int(nova_residencia[coluna])
 nova_residencia = pd.DataFrame([nova_residencia])
 
 #2 NORMALIZAR A NOVA RESIDÊNCIA
@@ -49,4 +57,9 @@ for coluna in colunas_categoricas:
 #Reordenar as colunas na ordem original da base
 centroide_desnormalizado = centroide_desnormalizado[nova_residencia.columns]
 print('Centroide do grupo', grupo, '(desnormalizado):')
-print(centroide_desnormalizado.round(4).T.to_string(header=False))
+for coluna in centroide_desnormalizado.columns:
+    valor = centroide_desnormalizado[coluna][0]
+    if coluna in colunas_categoricas:
+        print(f'{coluna:8} {int(valor)}')
+    else:
+        print(f'{coluna:8} {round(valor, 4) + 0.0:.4f}')
